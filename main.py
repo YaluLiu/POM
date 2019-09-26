@@ -47,7 +47,7 @@ seg_model = seg_model.cuda()
 seg_model = seg_model.eval()
 
 # get imgs path 
-cam_imgs_root = ["./images/{}".format(str(cam_id)) for cam_id in range(3)]
+cam_imgs_root = ["./images/{}".format(str(cam_id)) for cam_id in range(cams_num)]
 img_names = []
 for cam_id in range(cams_num):
     imgs_one_cam = [os.path.join(cam_imgs_root[cam_id], img_name) for img_name in os.listdir(cam_imgs_root[cam_id])]

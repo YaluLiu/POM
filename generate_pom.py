@@ -145,6 +145,10 @@ def get_pom_data(cams_num,cam_param,config_dict,result_view_image = False):
     for cam_id in range(cams_num):
         cameraMatrix = cam_param["P"][cam_id]
         pom += make_pom(cam_id,cameraMatrix,config_dict)
+
+    path = "./results"
+    if not os.path.exists(path):
+        os.makedirs(path)
     if(result_view_image):
         pom.append(['RESULT_VIEW_FORMAT', './results/result-f%f-c%c.png'])
     pom.append(['RESULT_FORMAT', './results/proba-f%f.dat'])
