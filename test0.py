@@ -14,13 +14,15 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib.animation import FuncAnimation, writers
 
 
-start =  200
-end   =  400
+start =  0
+end   =  500
 cams_num = 3
+human_idx = 3
+
 config_dict = {}
 #dir_path = "/media/yalu/6066C1DD66C1B3D6/ubuntu/MyProjects/cam_calibration/images/test0"
 dir_path = "/media/yalu/6066C1DD66C1B3D6/images/my"
-f = open("{}/constants.txt".format(dir_path))
+f = open("{}/constants_{}.txt".format(dir_path,human_idx))
 for line in f.readlines():
     line = line.strip().split(" ")
     config_dict[line[0]] = line[1]
@@ -34,9 +36,6 @@ nb_height = int(config_dict["NB_HEIGHT"])
 
 img_w = int(config_dict["IMG_W"])
 img_h = int(config_dict["IMG_H"])
-
-man_ray = float(config_dict["MAN_RAY"])
-man_height = float(config_dict["MAN_HEIGHT"])
 
 origin_x = float(config_dict["ORIGINE_X"])
 origin_y = float(config_dict["ORIGINE_Y"])
@@ -52,44 +51,20 @@ def setup():
     ax_cam.append(fig.add_subplot(grid[0,0]))
     ax_cam.append(fig.add_subplot(grid[1,0]))
     ax_cam.append(fig.add_subplot(grid[2,0]))
-    # mask_cam.append(fig.add_subplot(grid[0,1]))
-    # mask_cam.append(fig.add_subplot(grid[1,1]))
-    # mask_cam.append(fig.add_subplot(grid[2,1]))
     ax_result = fig.add_subplot(grid[:,1])
-    # ax4 = fig.add_subplot(grid[0,1])
-    # ax5 = fig.add_subplot(grid[1,1])
     return ax_cam,mask_cam,ax_result
 
-def get_proba_data(frame):
-    dat = np.zeros((nb_height*nb_width),dtype = np.float64)
-    for human_idx in range(1,5):
-        dat_path = './results/{}/proba-f{}.npy'.format(human_idx,frame)
-        tmp = np.load(dat_path) #np.float64
-        num_rectangle = tmp.shape[0]
-        assert(num_rectangle == nb_height * nb_width)
-        dat += tmp
-    dat /= 4
-    return dat
-
 def make_proba_images(frame,ax):
-    # dat_path = './results/proba-f{}.dat'.format(str(frame))
-    # f = open(dat_path,'r')
-    # lines = f.readlines()
-    
-    # num_rectangle = len(lines)
-    # assert(num_rectangle == nb_height * nb_width)
+    dat_path = './results/{}/proba-f{}.npy'.format(human_idx,frame)
+    tmp = np.load(dat_path)
+    num_rectangle = tmp.shape[0]
+    assert(num_rectangle == nb_height * nb_width)
     dat = np.zeros((nb_height,nb_width),dtype = np.float64)
-    # for i in range(num_rectangle):
-    #     tmp = lines[i].split(" ")
-    #     h = i // nb_width
-    #     w = i % nb_width
-    #     dat[h][w] = tmp[1]
-    
-    tmp = get_proba_data(frame)
-    for i in range(nb_height*nb_width):
+    for i in range(num_rectangle):
         h = i // nb_width
         w = i % nb_width
         dat[h][w] = tmp[i]
+    
     ax.imshow(dat,origin = 'lower')
     return dat
 
@@ -97,13 +72,7 @@ def make_points(img_name,points_2d,dat, ax):
     img = Image.open(img_name)
     
     ax.axis('off') # 关掉坐标轴为 off
-    ax.scatter(points_2d[:,0,0], points_2d[:,0,1], c=dat.flatten())
-    ax.imshow(img)
-
-def make_mask_img(frame, cam_id, ax):
-    ax.axis('off') # 关掉坐标轴为 off
-    img_path = "results/result-f{}-c{}.png".format(frame,cam_id)
-    img = Image.open(img_path)
+    ax.scatter(points_2d[:,0,0], points_2d[:,0,1], c=dat.flatten(), s = 1)
     ax.imshow(img)
 
 
@@ -184,14 +153,11 @@ for i in tqdm(range(start,end)):
     make_points(imgs_cam0[i],points_cam0, dat, ax_cam[0])
     make_points(imgs_cam1[i],points_cam1, dat, ax_cam[1])
     make_points(imgs_cam2[i],points_cam2, dat, ax_cam[2])
-    # make_mask_img(i, 0, mask_cam[0])
-    # make_mask_img(i, 1, mask_cam[1])
-    # make_mask_img(i, 2, mask_cam[2])
 
-    img_name = "proba_images/{}.png".format(i)
+    img_name = "proba_images/{}/{}.png".format(human_idx,i)
     fig.savefig(img_name)
 
-    #plt.show()
-    #plt.pause(1)
+    # plt.show()
+    # plt.pause(0.01)
     plt.clf()  #清除图像
 

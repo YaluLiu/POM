@@ -64,12 +64,13 @@ def genBackground_one(seg_model, img_path, score_thresh = 0.9, binary_thresh = 0
         for img in B:
             image = img if image is None else img+image
         
-        for i in range(image.size()[1]):
-            for j in range(image.size()[2]):
-                if(image[0][i][j] > 1):
-                    image[0][i][j] = 1
-
-        image_PIL = tensor_to_PIL(image)
+        
+        if(image is not None):
+            image_PIL = tensor_to_PIL(image)
+            image[image > 0.9] = 0.9
+        else:
+            ret_data = np.zeros((img_PIL.size[0], img_PIL.size[1], 3), dtype=np.uint8)
+            return ret_data
 
     np_data = np.transpose(np.asarray(image_PIL))
     ret_data = np.zeros((np_data.shape[0], np_data.shape[1], 3), dtype=np.uint8)

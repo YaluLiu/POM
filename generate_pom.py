@@ -43,8 +43,8 @@ def make_pom(cam_id,cam_param,config_dict):
 
     for i in range(nb_height):
         for j in range(nb_width):
-            tmpw = j / nb_width * width
-            tmph = i / nb_height * height
+            tmpw = j * width / nb_width
+            tmph = i * height / nb_height
             world.append(np.array((tmpw + origin_x,tmph + origin_y, 0.0, 1.0),dtype = np.float64))
 
 
@@ -74,9 +74,9 @@ def make_pom(cam_id,cam_param,config_dict):
         for i in range(len(points)):
             points[i] = points[i][:3]
         points = np.array(points,dtype = np.float64)
-        print("Shape of Points:",points.shape)
+        #print("Shape of Points:",points.shape)
         points_projections,tmp = cv2.projectPoints(points, rvec, tvec, cameraMatrix, dist)
-        print("Shape of points_projections:",points_projections.shape)
+        #print("Shape of points_projections:",points_projections.shape)
         points_projections = np.squeeze(points_projections)
 
     else:
@@ -170,7 +170,7 @@ def get_pom_data(cams_num,cam_param,config_dict,result_view_image = False):
         os.makedirs(path)
     if(result_view_image):
         pom.append(['RESULT_VIEW_FORMAT', './results/result-f%f-c%c.png'])
-    pom.append(['RESULT_FORMAT', './results/proba-f%f.dat'])
+    #pom.append(['RESULT_FORMAT', './results/proba-f%f.dat'])
     pom.append(['PROBA_IGNORED', '0.9999'])
     return pom
 

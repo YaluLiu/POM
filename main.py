@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-
+#  只使用mask和parse_pom模块.
 import sys
 import os
 import math
 import numpy as np
-import torchvision
 import pickle
 import time
 
@@ -13,10 +12,15 @@ from utils import   genBackground_one
 import parsepom
 from studentnets import TinyNet
 
-use_student = True
-cam_num = 2
-config_path = "./constant.txt"
-cam_param_path = "./camera_parameter_merge.pickle"
+use_student = False
+cam_num = 3
+human_idx = 4
+
+#dir_path = "/media/yalu/6066C1DD66C1B3D6/images/"
+dir_path = "/media/yalu/6066C1DD66C1B3D6/images/my"
+cam_param_path = "{}/camera_parameter.pickle".format(dir_path)
+config_path = "{}/constants_{}.txt".format(dir_path,human_idx)
+masks_path = "{}/masks.npy".format(dir_path)
 
 config_dict = {}
 f = open(config_path)
@@ -30,47 +34,28 @@ with open(cam_param_path, 'rb') as fp:
     cam_param = pickle.load(fp)
 
 room_data = get_room_data(cam_num,config_dict)
-pom_data = get_pom_data(cam_num,cam_param,config_dict,result_view_image = True)
+pom_data = get_pom_data(cam_num,cam_param,config_dict,result_view_image = False)
 
 parsepom.update_room(room_data)
 parsepom.update_room(pom_data)
 print("UPDATE_POM")  
 
-if use_student == False:
-    #model of get mask
-    seg_model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
-    seg_model = seg_model.cuda()
-    seg_model = seg_model.eval()
-else:
-    import torch
-    #device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    #seg_model = TinyNet(device, 2).to(device)
-    seg_model = torch.load('student.pkl')
-
-# get imgs path 
-cam_imgs_root = ["/media/yalu/6066C1DD66C1B3D6/images/cam{}".format(str(cam_id)) for cam_id in range(cam_num)]
-img_names = []
-for cam_id in range(cam_num):
-    imgs_one_cam = [os.path.join(cam_imgs_root[cam_id], img_name) for img_name in os.listdir(cam_imgs_root[cam_id])]
-    img_names.append(imgs_one_cam)
-
-frames_num = len(imgs_one_cam)
 
 print("Start to compute")
- 
-#start  = time.clock()
-for frame in range(frames_num):
+
+
+masks = np.load(masks_path) #(cam,frame,h,w,3)                                                                                                                                                                                              
+#masks = masks.swapaxes(2,3) #(cam,frame,w,h,3)
+
+for frame in range(0,500):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
     for cam in range(cam_num):
-        #get mask
-        img_path = img_names[cam][frame]
-        png_data = genBackground_one(seg_model, img_path, score_thresh = 0.9, binary_thresh = 0.5, cuda=True,use_student = use_student)
-        #update img under each camera by frame 
-        parsepom.sendImg(cam,png_data)
-    
+        mask_data = masks[cam][frame]
+        parsepom.sendImg(cam,mask_data) #mask_data(w,h,3)
     #compute the probabilty ndarray [(num_location), dytpe = np.float64]
     proba_presence = np.array(parsepom.solve(frame))
-
-#end = time.clock()
-#print("start:{},end:{}".format(str(start),str(end)))
-#print("Time of one frame:",(end - start)/(cam_num * frames_num))
+    npy_name = "./results/{}/proba-f{}.npy".format(human_idx,frame)
+    np.save(npy_name,proba_presence)
+    print("save {}".format(npy_name))
+    
 print("Work Success!")
+

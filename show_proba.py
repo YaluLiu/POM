@@ -14,7 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib.animation import FuncAnimation, writers
 
 
-start =  200
+start =  300
 end   =  400
 cams_num = 3
 config_dict = {}
@@ -42,8 +42,8 @@ origin_x = float(config_dict["ORIGINE_X"])
 origin_y = float(config_dict["ORIGINE_Y"])
 
 
-grid = plt.GridSpec(3, 2,wspace = 0, hspace = 0)
-fig = plt.figure(figsize=(16, 8))
+grid = plt.GridSpec(3, 3,wspace = 0, hspace = 0)
+fig = plt.figure(figsize=(24, 8))
 
 def setup():
     # setup the figure and axes
@@ -52,44 +52,28 @@ def setup():
     ax_cam.append(fig.add_subplot(grid[0,0]))
     ax_cam.append(fig.add_subplot(grid[1,0]))
     ax_cam.append(fig.add_subplot(grid[2,0]))
-    # mask_cam.append(fig.add_subplot(grid[0,1]))
-    # mask_cam.append(fig.add_subplot(grid[1,1]))
-    # mask_cam.append(fig.add_subplot(grid[2,1]))
-    ax_result = fig.add_subplot(grid[:,1])
+    mask_cam.append(fig.add_subplot(grid[0,1]))
+    mask_cam.append(fig.add_subplot(grid[1,1]))
+    mask_cam.append(fig.add_subplot(grid[2,1]))
+    ax_result = fig.add_subplot(grid[:,2])
     # ax4 = fig.add_subplot(grid[0,1])
     # ax5 = fig.add_subplot(grid[1,1])
     return ax_cam,mask_cam,ax_result
-
-def get_proba_data(frame):
-    dat = np.zeros((nb_height*nb_width),dtype = np.float64)
-    for human_idx in range(1,5):
-        dat_path = './results/{}/proba-f{}.npy'.format(human_idx,frame)
-        tmp = np.load(dat_path) #np.float64
-        num_rectangle = tmp.shape[0]
-        assert(num_rectangle == nb_height * nb_width)
-        dat += tmp
-    dat /= 4
-    return dat
-
+    
 def make_proba_images(frame,ax):
-    # dat_path = './results/proba-f{}.dat'.format(str(frame))
-    # f = open(dat_path,'r')
-    # lines = f.readlines()
+    dat_path = './results/proba-f{}.dat'.format(str(frame))
+    f = open(dat_path,'r')
+    lines = f.readlines()
     
-    # num_rectangle = len(lines)
-    # assert(num_rectangle == nb_height * nb_width)
+    num_rectangle = len(lines)
+    assert(num_rectangle == nb_height * nb_width)
     dat = np.zeros((nb_height,nb_width),dtype = np.float64)
-    # for i in range(num_rectangle):
-    #     tmp = lines[i].split(" ")
-    #     h = i // nb_width
-    #     w = i % nb_width
-    #     dat[h][w] = tmp[1]
-    
-    tmp = get_proba_data(frame)
-    for i in range(nb_height*nb_width):
+    for i in range(num_rectangle):
+        tmp = lines[i].split(" ")
         h = i // nb_width
         w = i % nb_width
-        dat[h][w] = tmp[i]
+        dat[h][w] = tmp[1]
+    
     ax.imshow(dat,origin = 'lower')
     return dat
 
@@ -188,10 +172,10 @@ for i in tqdm(range(start,end)):
     # make_mask_img(i, 1, mask_cam[1])
     # make_mask_img(i, 2, mask_cam[2])
 
-    img_name = "proba_images/{}.png".format(i)
-    fig.savefig(img_name)
+    # img_name = "proba_images/{}.png".format(i)
+    # fig.savefig(img_name)
 
-    #plt.show()
-    #plt.pause(1)
+    plt.show()
+    plt.pause(1)
     plt.clf()  #清除图像
 
